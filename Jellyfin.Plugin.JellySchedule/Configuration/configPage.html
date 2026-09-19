@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Jelly Schedule</title>
+</head>
+<body>
+    <div id="JellyScheduleConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox">
+        <div data-role="content">
+            <div class="content-primary">
+                <div class="verticalSection">
+                    <div class="sectionTitleContainer flex align-items-center">
+                        <h2 class="sectionTitle">Jelly Schedule</h2>
+                    </div>
+                    <p>Your library, as a weekly TV channel. Pick your viewing evenings, line up your shows and movies, and tune in.</p>
+                    <p>
+                        <a is="emby-linkbutton" class="raised button-submit emby-button" id="openApp" href="#" target="_blank" rel="noopener">Open Jelly Schedule</a>
+                        <span class="fieldDescription" style="display:inline-block;margin-left:1em">Works for every Jellyfin user (not only administrators). Bookmark it on the TV browser or phone.</span>
+                    </p>
+                    <div class="fieldDescription" id="appUrlBox" style="margin-top:.5em"></div>
+                </div>
+
+                <form id="JellyScheduleConfigForm" style="margin-top:2em">
+                    <div class="verticalSection">
+                        <h2 class="sectionTitle">Airing dates</h2>
+                        <p class="fieldDescription">Used to show when the next episode of a show is broadcast. Sonarr is preferred when configured; otherwise TVmaze (free, no key) is used as a fallback.</p>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="SonarrUrl">Sonarr URL</label>
+                            <input id="SonarrUrl" name="SonarrUrl" type="text" is="emby-input" placeholder="http://sonarr:8989" />
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="SonarrApiKey">Sonarr API key</label>
+                            <input id="SonarrApiKey" name="SonarrApiKey" type="password" is="emby-input" autocomplete="off" />
+                            <div class="fieldDescription">Sonarr → Settings → General → API Key. <button type="button" is="emby-button" class="raised emby-button" id="testSonarr">Test</button> <span id="sonarrResult"></span></div>
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="RadarrUrl">Radarr URL</label>
+                            <input id="RadarrUrl" name="RadarrUrl" type="text" is="emby-input" placeholder="http://radarr:7878" />
+                        </div>
+                        <div class="inputContainer">
+                            <label class="inputLabel inputLabelUnfocused" for="RadarrApiKey">Radarr API key</label>
+                            <input id="RadarrApiKey" name="RadarrApiKey" type="password" is="emby-input" autocomplete="off" />
+                            <div class="fieldDescription">Shows movies you are still waiting for ("coming soon"). <button type="button" is="emby-button" class="raised emby-button" id="testRadarr">Test</button> <span id="radarrResult"></span></div>
+                        </div>
+                        <div class="checkboxContainer checkboxContainer-withDescription">
+                            <label class="emby-checkbox-label">
+                                <input id="EnableTvMaze" name="EnableTvMaze" type="checkbox" is="emby-checkbox" />
+                                <span>Use TVmaze for air dates when Sonarr doesn't know a show</span>
+                            </label>
+                            <div class="fieldDescription">TVmaze is a free public API; no account or key is needed. Only the TVDB/IMDb id of each show is sent.</div>
+                        </div>
+                    </div>
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="verticalSection" style="margin-top:2em">
+                    <h2 class="sectionTitle">Tips</h2>
+                    <ul class="fieldDescription">
+                        <li>All scheduling (viewing times, lineup, movie nights, recordings) is done inside the app, by any signed-in user.</li>
+                        <li>The schedule follows one user's watched history — the <b>household user</b> — chosen in the app's Settings by an administrator.</li>
+                        <li>To add a link in the Jellyfin sidebar for everyone, add a custom menu link pointing to the app URL above (jellyfin-web <code>config.json</code> → <code>menuLinks</code>).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                var pluginId = '7f2b1e6a-3c4d-4a5e-9b8c-2d1e0f9a7b6c';
+                var page = document.querySelector('#JellyScheduleConfigPage');
+
+                function appUrl() {
+                    var base = ApiClient.serverAddress ? ApiClient.serverAddress() : (location.origin + location.pathname.replace(/\/web\/.*$/, ''));
+                    return base.replace(/\/$/, '') + '/JellySchedule/app';
+                }
+
+                function test(service, resultEl) {
+                    resultEl.textContent = 'Testing…';
+                    var url = document.querySelector('#' + (service === 'sonarr' ? 'SonarrUrl' : 'RadarrUrl')).value;
+                    var key = document.querySelector('#' + (service === 'sonarr' ? 'SonarrApiKey' : 'RadarrApiKey')).value;
+                    ApiClient.getJSON(ApiClient.getUrl('JellySchedule/integrations/test', { service: service, url: url, apiKey: key })).then(function (r) {
+                        resultEl.textContent = (r.Ok ? '✓ ' : '✗ ') + (r.Message || '');
+                    }).catch(function () { resultEl.textContent = '✗ request failed'; });
+                }
+
+                page.addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    var link = document.querySelector('#openApp');
+                    link.href = appUrl();
+                    document.querySelector('#appUrlBox').textContent = 'App URL: ' + appUrl();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        document.querySelector('#SonarrUrl').value = config.SonarrUrl || '';
+                        document.querySelector('#SonarrApiKey').value = config.SonarrApiKey || '';
+                        document.querySelector('#RadarrUrl').value = config.RadarrUrl || '';
+                        document.querySelector('#RadarrApiKey').value = config.RadarrApiKey || '';
+                        document.querySelector('#EnableTvMaze').checked = config.EnableTvMaze !== false;
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                document.querySelector('#testSonarr').addEventListener('click', function () { test('sonarr', document.querySelector('#sonarrResult')); });
+                document.querySelector('#testRadarr').addEventListener('click', function () { test('radarr', document.querySelector('#radarrResult')); });
+
+                document.querySelector('#JellyScheduleConfigForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        config.SonarrUrl = document.querySelector('#SonarrUrl').value.trim();
+                        config.SonarrApiKey = document.querySelector('#SonarrApiKey').value.trim();
+                        config.RadarrUrl = document.querySelector('#RadarrUrl').value.trim();
+                        config.RadarrApiKey = document.querySelector('#RadarrApiKey').value.trim();
+                        config.EnableTvMaze = document.querySelector('#EnableTvMaze').checked;
+                        ApiClient.updatePluginConfiguration(pluginId, config).then(function (result) {
+                            Dashboard.processPluginConfigurationUpdateResult(result);
+                        });
+                    });
+                    return false;
+                });
+            })();
+        </script>
+    </div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+---
+name: "Jelly Schedule"
+guid: "7f2b1e6a-3c4d-4a5e-9b8c-2d1e0f9a7b6c"
+version: "1.0.0.0"
+targetAbi: "12.0.0.0"
+framework: "net10.0"
+overview: "Your library as a weekly TV channel: viewing evenings, a lineup, movie nights, re-runs and a guide to tune in to."
+description: >
+  Jelly Schedule turns your Jellyfin library into an old-fashioned TV channel.
+  Choose the evenings and hours you want to watch, line up the series and movies you care about,
+  and the plugin generates a weekly TV guide: one new episode per show per airing (skipping what you have
+  watched), movie nights, re-run slots for comfort shows, and "off air" outside your viewing times.
+  Tune in from any device, record programmes to watch later, and see when the next episode of a show airs
+  (Sonarr or TVmaze).
+category: "General"
+owner: "acdewinter"
+artifacts:
+- "Jellyfin.Plugin.JellySchedule.dll"
+changelog: >
+  Initial release.

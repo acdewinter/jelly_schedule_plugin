@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Authors>acdewinter</Authors>
+    <Copyright>Copyright (c) Jelly Schedule contributors</Copyright>
+    <RepositoryUrl>https://github.com/acdewinter/jelly_schedule_plugin</RepositoryUrl>
+  </PropertyGroup>
+</Project>
