@@ -1,0 +1,30 @@
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+    paths-ignore: ['**/*.md', 'docs/**']
+  pull_request:
+    paths-ignore: ['**/*.md', 'docs/**']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+      - name: Build (Jellyfin 10.11 and 12)
+        run: dotnet build Jellyfin.Plugin.JellySchedule/Jellyfin.Plugin.JellySchedule.csproj -c Release
+      - name: Test
+        run: dotnet test tests/Jellyfin.Plugin.JellySchedule.Tests/Jellyfin.Plugin.JellySchedule.Tests.csproj -c Release
+      - name: Package
+        run: ./scripts/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jellyschedule-plugin
+          path: dist/*.zip

@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            9.0.x
+            10.0.x
+      - name: Version from tag
+        id: v
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Build, test and package
+        run: |
+          dotnet test tests/Jellyfin.Plugin.JellySchedule.Tests/Jellyfin.Plugin.JellySchedule.Tests.csproj -c Release
+          ./scripts/package.sh "${{ steps.v.outputs.version }}"
+      - name: Update manifest.json
+        run: ./scripts/update-manifest.sh "${{ steps.v.outputs.version }}" "https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}"
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
+      - name: Commit manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "Update plugin manifest for ${GITHUB_REF_NAME}" || echo "manifest unchanged"
+          git push origin HEAD:${{ github.event.repository.default_branch }}
