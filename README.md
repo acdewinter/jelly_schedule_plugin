@@ -69,9 +69,9 @@ NODE_PATH=$(npm root -g) node tools/ui-test/ui-test.mjs http://localhost:5000 ./
 
 The web app is plain HTML/CSS/JS (`Jellyfin.Plugin.JellySchedule/Web`), embedded in the plugin and served at `/JellySchedule/app`. Schedule data is stored in `<config>/plugins/configurations/JellySchedule/schedule.json`. [hls.js](https://github.com/video-dev/hls.js) (Apache-2.0) is bundled for transcoded playback.
 
-### API
+### API and other clients
 
-All endpoints live under `/JellySchedule/` and use normal Jellyfin authentication: `state`, `guide?from=YYYY-MM-DD&days=7`, `now`, `lineup`, `windows`, `movie-night`, `settings`, `recordings`, `one-offs`, `blackouts`, `playstate`, `calendar.ics?key=…`.
+All endpoints live under `/JellySchedule/` and use normal Jellyfin authentication. The full contract (endpoints, JSON shapes, tune-in and auto-advance rules) is in [docs/API.md](docs/API.md), so other clients can be built on it. A brief for a native Android TV companion app is in [docs/COMPANION_APP_BRIEF.md](docs/COMPANION_APP_BRIEF.md).
 
 ## License
 
